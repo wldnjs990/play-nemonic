@@ -16,7 +16,7 @@ export default function RelayDrawingStage() {
   const isSubmitted = useRelayDrawingStore((state) => state.isSubmitted)
   const isPartTimeUp = useRelayDrawingStore((state) => state.isPartTimeUp)
 
-  const { beginDrawing, continueDrawing, endDrawing } = useRelayCanvas()
+  const { beginDrawing, continueDrawing, endDrawing, activeLineRef, activeLayerRef } = useRelayCanvas()
 
   const activeRoundRule = RELAY_ROUND_RULES[activeRoundKey]
   const stageAspectRatio = RELAY_STAGE_SIZE.width / RELAY_STAGE_SIZE.height
@@ -164,7 +164,12 @@ export default function RelayDrawingStage() {
           </Layer>
 
           {/* 드로잉 레이어 — destination-out 지우개가 이 레이어 내에서만 동작. */}
-          <DrawingLinesLayer lines={lines} drawArea={activeRoundRule.drawArea} />
+          <DrawingLinesLayer
+            lines={lines}
+            drawArea={activeRoundRule.drawArea}
+            activeLineRef={activeLineRef}
+            activeLayerRef={activeLayerRef}
+          />
         </Stage>
       )}
     </div>
