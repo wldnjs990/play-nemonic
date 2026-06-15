@@ -14,6 +14,7 @@ export function useRelayCanvas() {
   const activeStroke = useRef<RelayDrawLine | null>(null)
   const activeLineRef = useRef<Konva.Line>(null)
   const activeLayerRef = useRef<Konva.Layer>(null)
+  const rafId = useRef<number | null>(null)
 
   const beginDrawing = useCallback(
     (event: KonvaEventObject<MouseEvent | TouchEvent>) => {
@@ -34,7 +35,6 @@ export function useRelayCanvas() {
         strokeWidth,
         roundLines,
         addRecentColor,
-        commitLine,
       } = useRelayDrawingStore.getState()
 
       const drawArea = RELAY_ROUND_RULES[activeRoundKey].drawArea
@@ -94,6 +94,12 @@ export function useRelayCanvas() {
   const flushActiveStroke = useCallback(() => {
     if (!activeStroke.current) return
 
+    // mouseup 후 stale RAF가 active 레이어를 건드리지 않도록 취소
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current)
+      rafId.current = null
+    }
+
     const { commitLine } = useRelayDrawingStore.getState()
     commitLine(activeStroke.current)
     activeLineRef.current?.points([])
@@ -120,13 +126,20 @@ export function useRelayCanvas() {
         return
       }
 
-      // ref에 점을 추가한다 — Zustand 업데이트 없음, 리렌더 없음
+      // 점 수집은 매 mousemove마다 실행 — throttle 없음, 선 품질 유지
       activeStroke.current.points.push({ x: pointerPosition.x, y: pointerPosition.y })
 
-      // Konva 캔버스를 직접 업데이트한다.
-      const flatPoints = activeStroke.current.points.flatMap((p) => [p.x, p.y])
-      activeLineRef.current?.points(flatPoints)
-      activeLayerRef.current?.batchDraw()
+      // batchDraw는 RAF로 throttle — 60fps 초과 리페인트 제거
+      if (rafId.current === null) {
+        rafId.current = requestAnimationFrame(() => {
+          if (activeStroke.current) {
+            const flatPoints = activeStroke.current.points.flatMap((p) => [p.x, p.y])
+            activeLineRef.current?.points(flatPoints)
+            activeLayerRef.current?.batchDraw()
+          }
+          rafId.current = null
+        })
+      }
     },
     [flushActiveStroke],
   )
