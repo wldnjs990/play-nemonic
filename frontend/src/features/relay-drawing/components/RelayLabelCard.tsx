@@ -5,6 +5,7 @@ import { cn } from "@/shared/libs";
 interface RelayLabelCardProps {
   imageSrc: StaticImageData;
   imageAlt: string;
+  priority?: boolean;
   // px 단위. 인트로 choreography처럼 애니메이션 수치 계산이 필요한 곳에서만 명시.
   // 생략하면 Tailwind 반응형 클래스(100px / lg:150px)로 렌더링.
   size?: number;
@@ -14,6 +15,7 @@ interface RelayLabelCardProps {
 export default function RelayLabelCard({
   imageSrc,
   imageAlt,
+  priority = false,
   size,
   className,
 }: RelayLabelCardProps) {
@@ -35,8 +37,9 @@ export default function RelayLabelCard({
         <Image
           src={imageSrc}
           alt={imageAlt}
-          priority
+          priority={priority}
           fill
+          sizes={size !== undefined ? `${size}px` : "(max-width: 1024px) 120px, 180px"}
           style={{ objectFit: "contain" }}
         />
       </div>

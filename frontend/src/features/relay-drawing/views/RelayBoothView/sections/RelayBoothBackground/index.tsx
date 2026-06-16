@@ -27,7 +27,6 @@ export default function RelayBoothBackground({
         src={relayDrawingBg}
         alt=""
         fill
-        priority
         sizes="100vw"
         style={{ objectFit: "cover" }}
       />

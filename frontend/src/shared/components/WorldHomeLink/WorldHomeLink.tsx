@@ -78,6 +78,7 @@ export default function WorldHomeLink({
           height={1222}
           priority
           draggable={false}
+          sizes="(max-width: 640px) 120px, 140px"
           className="h-auto w-[7.5rem] drop-shadow-[0_8px_18px_rgba(0,0,0,0.18)] sm:w-[8.75rem]"
         />
       </motion.button>
