@@ -10,7 +10,9 @@
     "patch:room-glb-retired-props": "node tools/gltf/patch_room_retired_props.mjs public/models/isometric-girl-room.glb",
     "dev": "next dev",
     "build": "next build",
+    "build:standalone": "next build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public",
     "start": "next start",
+    "start:standalone": "node .next/standalone/server.js",
     "lint": "eslint"
   },
   "dependencies": {
