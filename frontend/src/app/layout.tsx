@@ -16,6 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <link rel="preload" href="/fonts/Paperlogy-5Medium.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/Paperlogy-6SemiBold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <BrowserExtensionErrorGuard />
         <UserBootstrapLoader />
