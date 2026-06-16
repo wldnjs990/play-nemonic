@@ -2,13 +2,19 @@
 
 import { useCallback, useRef } from 'react'
 import type { KonvaEventObject } from 'konva/lib/Node'
+import type Konva from 'konva'
 import { createBucketFillLine } from '@/shared/utils'
 import { RELAY_ROUND_RULES, RELAY_STAGE_SIZE } from '../constants'
+import type { RelayDrawLine } from '../types'
 import { useRelayDrawingStore } from '../stores'
 import { isPointInsideArea } from '../utils/canvas-rendering'
 
 export function useRelayCanvas() {
   const isDrawing = useRef(false)
+  const activeStroke = useRef<RelayDrawLine | null>(null)
+  const activeLineRef = useRef<Konva.Line>(null)
+  const activeLayerRef = useRef<Konva.Layer>(null)
+  const rafId = useRef<number | null>(null)
 
   const beginDrawing = useCallback(
     (event: KonvaEventObject<MouseEvent | TouchEvent>) => {
@@ -29,7 +35,6 @@ export function useRelayCanvas() {
         strokeWidth,
         roundLines,
         addRecentColor,
-        commitLine,
       } = useRelayDrawingStore.getState()
 
       const drawArea = RELAY_ROUND_RULES[activeRoundKey].drawArea
@@ -58,27 +63,53 @@ export function useRelayCanvas() {
       const activeStrokeWidth = strokeWidth
       const compositeOperation =
         selectedToolKey === 'eraser' ? 'destination-out' : 'source-over'
+      const opacity = selectedToolKey === 'eraser' ? 1 : selectedOpacity
 
       isDrawing.current = true
       if (selectedToolKey !== 'eraser') {
         addRecentColor(selectedColor)
       }
-      commitLine({
+
+      activeStroke.current = {
         id: `${activeRoundKey}-line-${Date.now()}-${roundLines[activeRoundKey].length}`,
         kind: 'stroke',
         color: stageColor,
         strokeWidth: activeStrokeWidth,
-        opacity: selectedToolKey === 'eraser' ? 1 : selectedOpacity,
+        opacity,
         compositeOperation,
         points: [{ x: pointerPosition.x, y: pointerPosition.y }],
-      })
+      }
+
+      // Konva 노드 속성을 직접 설정하고 레이어를 다시 그린다.
+      // React 리렌더 없이 캔버스만 업데이트된다.
+      activeLineRef.current?.stroke(stageColor)
+      activeLineRef.current?.strokeWidth(activeStrokeWidth)
+      activeLineRef.current?.opacity(opacity)
+      activeLineRef.current?.points([pointerPosition.x, pointerPosition.y])
+      activeLayerRef.current?.batchDraw()
     },
     [],
   )
 
+  const flushActiveStroke = useCallback(() => {
+    if (!activeStroke.current) return
+
+    // mouseup 후 stale RAF가 active 레이어를 건드리지 않도록 취소
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current)
+      rafId.current = null
+    }
+
+    const { commitLine } = useRelayDrawingStore.getState()
+    commitLine(activeStroke.current)
+    activeLineRef.current?.points([])
+    activeLayerRef.current?.batchDraw()
+    activeStroke.current = null
+  }, [])
+
   const continueDrawing = useCallback(
     (event: KonvaEventObject<MouseEvent | TouchEvent>) => {
-      if (!isDrawing.current) return
+      if (!isDrawing.current || !activeStroke.current) return
 
       const stage = event.target.getStage()
       // getRelativePointerPosition: Stage scale이 걸린 상황에서도 children 좌표계
@@ -86,22 +117,37 @@ export function useRelayCanvas() {
       const pointerPosition = stage?.getRelativePointerPosition()
       if (!pointerPosition) return
 
-      const { activeRoundKey, appendPointToLastLine } = useRelayDrawingStore.getState()
+      const { activeRoundKey } = useRelayDrawingStore.getState()
       const drawArea = RELAY_ROUND_RULES[activeRoundKey].drawArea
 
       if (!isPointInsideArea(pointerPosition, drawArea)) {
         isDrawing.current = false
+        flushActiveStroke()
         return
       }
 
-      appendPointToLastLine({ x: pointerPosition.x, y: pointerPosition.y })
+      // 점 수집은 매 mousemove마다 실행 — throttle 없음, 선 품질 유지
+      activeStroke.current.points.push({ x: pointerPosition.x, y: pointerPosition.y })
+
+      // batchDraw는 RAF로 throttle — 60fps 초과 리페인트 제거
+      if (rafId.current === null) {
+        rafId.current = requestAnimationFrame(() => {
+          if (activeStroke.current) {
+            const flatPoints = activeStroke.current.points.flatMap((p) => [p.x, p.y])
+            activeLineRef.current?.points(flatPoints)
+            activeLayerRef.current?.batchDraw()
+          }
+          rafId.current = null
+        })
+      }
     },
-    [],
+    [flushActiveStroke],
   )
 
   const endDrawing = useCallback(() => {
     isDrawing.current = false
-  }, [])
+    flushActiveStroke()
+  }, [flushActiveStroke])
 
-  return { beginDrawing, continueDrawing, endDrawing }
+  return { beginDrawing, continueDrawing, endDrawing, activeLineRef, activeLayerRef }
 }
