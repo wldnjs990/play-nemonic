@@ -5,9 +5,9 @@ import Image from "next/image";
 import { useState } from "react";
 
 import { relayDrawingTitle } from "@/features/relay-drawing/assets";
-import RelayButton from "@/features/relay-drawing/components/RelayButton";
-import RelayJoinRoomModal from "@/features/relay-drawing/components/RelayJoinRoomModal";
-import RelayNicknameModal from "@/features/relay-drawing/components/RelayNicknameModal";
+import RelayButton from "../../components/RelayButton";
+import RelayJoinRoomModal from "../../components/RelayJoinRoomModal";
+import RelayNicknameModal from "../../components/RelayNicknameModal";
 import { useRelayBooth } from "./hooks";
 import RelayBoothBackground from "./sections/RelayBoothBackground";
 import RelayBoothEntrance from "./sections/RelayBoothEntrance";
@@ -104,6 +104,7 @@ export default function RelayBoothView() {
                   src={relayDrawingTitle}
                   alt="우당탕 릴레이 드로잉"
                   priority
+                  sizes="(min-width: 1024px) 420px, (min-width: 640px) 340px, calc(100vw - 64px)"
                   className="h-auto w-full sm:max-w-85 lg:max-w-105"
                 />
               </h1>

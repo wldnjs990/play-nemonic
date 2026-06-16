@@ -17,7 +17,8 @@
     font-weight: 500;
     font-style: normal;
     font-display: swap;
-    src: url('/fonts/Paperlogy-5Medium.woff') format('woff');
+    src: url('/fonts/Paperlogy-5Medium.woff2') format('woff2'),
+         url('/fonts/Paperlogy-5Medium.woff') format('woff');
   }
 
   @font-face {
@@ -25,7 +26,8 @@
     font-weight: 600;
     font-style: normal;
     font-display: swap;
-    src: url('/fonts/Paperlogy-6SemiBold.woff') format('woff');
+    src: url('/fonts/Paperlogy-6SemiBold.woff2') format('woff2'),
+         url('/fonts/Paperlogy-6SemiBold.woff') format('woff');
   }
 
   @font-face {

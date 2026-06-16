@@ -28,7 +28,7 @@ export function useRelayBgm() {
     const audio = new Audio(BGM_SRC)
     audio.loop = true
     audio.volume = BGM_VOLUME
-    audio.preload = 'auto'
+    audio.preload = 'none'
     audioRef.current = audio
 
     return () => {

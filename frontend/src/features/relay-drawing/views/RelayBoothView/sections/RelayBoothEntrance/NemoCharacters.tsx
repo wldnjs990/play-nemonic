@@ -30,6 +30,7 @@ export default function NemoCharacters({
             <Image
               src={assets.red}
               alt=""
+              sizes="(min-width: 1024px) 300px, (min-width: 640px) 224px, 160px"
               className="h-40 w-40 sm:h-56 sm:w-56 lg:h-75 lg:w-75"
             />
           </motion.div>
@@ -51,6 +52,7 @@ export default function NemoCharacters({
             <Image
               src={assets.green}
               alt=""
+              sizes="(min-width: 1024px) 300px, (min-width: 640px) 224px, 160px"
               className="h-40 w-40 sm:h-56 sm:w-56 lg:h-75 lg:w-75"
             />
           </motion.div>
